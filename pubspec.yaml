@@ -1,6 +1,6 @@
 name: mvvm_service
 description: A Flutter-native service layer inspired by the MVVM pattern, managing services according to the widget lifecycle, without relying on Provider or Riverpod.
-version: 1.0.1
+version: 1.0.2
 publisher: ttankkeo112@gmail.com
 repository: https://github.com/flutter-service/service
 keywords:

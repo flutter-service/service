@@ -172,8 +172,8 @@ abstract class Service<T> extends ChangeNotifier {
   ///
   /// If no instance of this class encloses the given context, will return null.
   /// To throw an exception instead, use [of] instead of this function.
-  static Service<T>? maybeOf<T extends Service>(BuildContext context) {
-    return ServiceProvider.maybeOf<Service<T>>(context);
+  static T? maybeOf<T extends Service>(BuildContext context) {
+    return ServiceProvider.maybeOf<T>(context);
   }
 
   /// Finds the [Service] from the closest instance of this class that
@@ -181,8 +181,8 @@ abstract class Service<T> extends ChangeNotifier {
   ///
   /// If no instance of this class encloses the given context, will cause an
   /// assert in debug mode, and throw an exception in release mode.
-  static Service<T> of<T extends Service>(BuildContext context) {
-    final Service<T>? result = maybeOf<T>(context);
+  static T of<T extends Service>(BuildContext context) {
+    final T? result = maybeOf<T>(context);
     if (result != null) {
       return result;
     }

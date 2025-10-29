@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:mvvm_service/mvvm_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -52,5 +53,24 @@ void main() {
     expect(service.status, ServiceStatus.refresh);
     await future;
     expect(service.status, ServiceStatus.loaded);
+  });
+
+  testWidgets("Service.of returns the correct service", (tester) async {
+    final service = TestService();
+
+    await tester.pumpWidget(
+      ServiceProvider<TestService>(
+        service: service,
+        child: Builder(
+          builder: (context) {
+            final fetchedService = Service.of<TestService>(context);
+
+            // The fetched service should match the provided service.
+            expect(fetchedService, service);
+            return Container();
+          },
+        ),
+      ),
+    );
   });
 }
