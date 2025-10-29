@@ -58,7 +58,11 @@ class ServiceBuilderState<T extends Service> extends State<ServiceBuilder<T>> {
   void initState() {
     super.initState();
     _service = widget.factory(context);
-    _service.load();
+
+    // Triggers the service to load its data if it hasn't been initialized yet.
+    if (_service.status == ServiceStatus.none) {
+      _service.load();
+    }
   }
 
   @override
