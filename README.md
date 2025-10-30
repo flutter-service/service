@@ -109,3 +109,48 @@ You can easily access a service from an ancestor widget using the following synt
 ```dart
 final service = Service.of<MyService>(context);
 ```
+
+### Using When
+You can use the when extension on the service to declaratively build widgets based on its current state.
+This keeps the UI code concise and clearly maps each state to a corresponding widget:
+
+```dart
+service.when(
+  none: () => Text("Service is none"), // optional fallback when 'loading'
+  loading: () => CircularProgressIndicator(),
+  refresh: () => CircularProgressIndicator(), // optional fallback when 'loaded'
+  failed: (error) => Text("Service failed: $error"),
+  loaded: (data) => Text("Data: $data"),
+);
+```
+
+### Tip
+
+#### Using Singleton Pattern
+Singletons are useful when you want **only one instance of a service** to exist across your app.  
+This ensures shared state is consistent and avoids creating multiple instances unnecessarily.  
+
+> [!IMPORTANT]
+> Also, declaring a single instance as static and providing it via a Provider is inefficient and goes against the Flutter philosophy.
+
+```dart
+/// A simple example service that extends [Service] with integer data.
+/// It increments a static counter each time [fetchData] is called.
+class ExampleService extends Service<int> {
+  ExampleService._();
+
+  /// The singleton instance of [ExampleService].
+  /// Use this instead of creating a new instance
+  /// to ensure a single shared service.
+  static final ExampleService instance = ExampleService._();
+
+  static int count = 0;
+
+  // Simulates fetching data asynchronously with a 1-second delay.
+  @override
+  Future<int> fetchData() async {
+    await Future.delayed(Duration(seconds: 1));
+    return count += 1;
+  }
+}
+```

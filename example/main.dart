@@ -53,6 +53,21 @@ class ExampleWidget extends ServiceWidget<ExampleService> {
   /// and displays the service's integer data once loaded.
   @override
   Widget build(BuildContext context, ExampleService service) {
+    // Alternatively, you can use the `when` extension on the service
+    // to declaratively build widgets based on its current state.
+    // This keeps the UI code concise and clearly maps each state
+    // (loading, failed, loaded, refresh) to a corresponding widget.
+    //
+    // Example:
+    //
+    // service.when(
+    //   none: () => Text("Service is none"),
+    //   loading: () => CircularProgressIndicator(), // Shown while data is loading
+    //   refresh: () => CircularProgressIndicator(), // Optional: Shown during a refresh
+    //   failed: (error) => Text("Service failed: $error"), // Shown if an error occurs
+    //   loaded: (data) => Text("Data: $data"), // Shown when data is successfully loaded
+    // );
+
     if (service.isLoading) {
       return CircularProgressIndicator();
     }
