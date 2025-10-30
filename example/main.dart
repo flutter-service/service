@@ -27,12 +27,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: Colors.black,
-        body: SafeArea(
-          child: Center(
-            child: ExampleWidget(),
-          ),
-        ),
+        body: SafeArea(child: Center(child: ExampleWidget())),
       ),
     );
   }
@@ -87,12 +82,20 @@ class ExampleSubtreeWidget extends ServiceWidgetOf<ExampleService> {
 
   @override
   Widget build(BuildContext context, ExampleService service) {
-    return RefreshIndicator(
-      onRefresh: service.refresh,
-      child: Opacity(
-        opacity: service.isRefreshing ? 0.5 : 1,
-        child: Text(service.data.toString()),
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 15,
+      children: [
+        Opacity(
+          opacity: service.isRefreshing ? 0.5 : 1,
+          child: Text(service.data.toString()),
+        ),
+        // Simple refresh implementation.
+        IgnorePointer(
+          ignoring: service.isRefreshing,
+          child: TextButton(onPressed: service.refresh, child: Text("Refesh")),
+        ),
+      ],
     );
   }
 }

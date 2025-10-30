@@ -11,3 +11,6 @@
 - Added `ServiceWhen<T>` extension on services to declaratively build widgets based on their current state.
 
 - Updated `ServiceBuilder` to dispose its Service instance when the widget is disposed if it fully owns the service.
+
+## 1.1.1
+- Added `ServiceWidgetOf`, a widget that allows referencing an existing service from the widget tree. This widget is useful when a service has already been initialized and managed by an ancestor widget, allowing descendant widgets to access and rebuild in response to service updates without creating a new instance.

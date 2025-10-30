@@ -110,6 +110,23 @@ You can easily access a service from an ancestor widget using the following synt
 final service = Service.of<MyService>(context);
 ```
 
+### Using ServiceWidgetOf
+If you don't need to directly reference the service instance in your widget tree,
+you can simplify your code by using ServiceWidgetOf instead:
+
+```dart
+/// A subtree widget that depends on [ExampleService] using [ServiceWidgetOf].
+/// Displays the loaded integer data with a refresh mechanism.
+class ExampleSubtreeWidget extends ServiceWidgetOf<ExampleService> {
+  const ExampleSubtreeWidget({super.key});
+
+  @override
+  Widget build(BuildContext context, ExampleService service) {
+    return ...;
+  }
+}
+```
+
 ### Using When
 You can use the when extension on the service to declaratively build widgets based on its current state.
 This keeps the UI code concise and clearly maps each state to a corresponding widget:
