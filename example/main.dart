@@ -76,6 +76,17 @@ class ExampleWidget extends ServiceWidget<ExampleService> {
       return Text("Service is failed: ${service.error}");
     }
 
+    return ExampleSubtreeWidget();
+  }
+}
+
+/// A subtree widget that depends on [ExampleService] using [ServiceWidgetOf].
+/// Displays the loaded integer data with a refresh mechanism.
+class ExampleSubtreeWidget extends ServiceWidgetOf<ExampleService> {
+  const ExampleSubtreeWidget({super.key});
+
+  @override
+  Widget build(BuildContext context, ExampleService service) {
     return RefreshIndicator(
       onRefresh: service.refresh,
       child: Opacity(

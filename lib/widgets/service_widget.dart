@@ -1,8 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:mvvm_service/mvvm_service.dart';
 
-/// An abstract [StatefulWidget] that provides a convenient
-/// way to work with a [Service] instance.
+/// A widget taht provides a convenient way to work with a [Service] instance.
 ///
 /// This widget automatically wraps the [initialService] with a [ServiceBuilder],
 /// so the UI rebuilds whenever the service notifies listeners.
