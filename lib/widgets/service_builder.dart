@@ -54,6 +54,10 @@ class ServiceBuilderState<T extends Service> extends State<ServiceBuilder<T>> {
   /// Returns the service of the [ServiceBuilder] widget.
   T get service => _service;
 
+  /// Indicates whether this widget fully owns the service and is
+  /// responsible for managing its lifecycle, including disposal.
+  bool _ownsService = false;
+
   @override
   void initState() {
     super.initState();
@@ -61,8 +65,15 @@ class ServiceBuilderState<T extends Service> extends State<ServiceBuilder<T>> {
 
     // Triggers the service to load its data if it hasn't been initialized yet.
     if (_service.status == ServiceStatus.none) {
+      _ownsService = true;
       _service.load();
     }
+  }
+
+  @override
+  void dispose() {
+    if (_ownsService) _service.dispose();
+    super.dispose();
   }
 
   @override
