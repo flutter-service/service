@@ -78,7 +78,7 @@ class ServiceBuilderState<T extends Service> extends State<ServiceBuilder<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return ServiceProvider(
+    return ServiceProvider<T>(
       service: service,
       child: ListenableBuilder(
         listenable: _service,

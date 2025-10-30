@@ -24,7 +24,7 @@ abstract class ServiceWidget<T extends Service> extends StatefulWidget {
 class ServiceWidgetState<T extends Service> extends State<ServiceWidget<T>> {
   @override
   Widget build(BuildContext context) {
-    return ServiceBuilder(
+    return ServiceBuilder<T>(
       factory: (context) => widget.initialService,
       builder: widget.build,
     );
