@@ -8,6 +8,7 @@ class TestService extends Service<String> {
 
   final bool isThrowError;
 
+  static const Duration duration = Duration(microseconds: 1);
   static const String sampleData = "Hello, World!";
   static final Error sampleError = Error();
 

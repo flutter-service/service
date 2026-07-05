@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:mvvm_service/mvvm_service.dart';
 
-/// A widget taht provides a convenient way to work with a [Service] instance.
+/// A widget that provides a convenient way to work with a [Service] instance.
 ///
 /// This widget automatically wraps the [initialService] with a [ServiceBuilder],
 /// so the UI rebuilds whenever the service notifies listeners.
@@ -24,7 +24,7 @@ abstract class ServiceWidget<T extends Service> extends StatefulWidget {
 class ServiceWidgetState<T extends Service> extends State<ServiceWidget<T>> {
   @override
   Widget build(BuildContext context) {
-    return ServiceBuilder<T>(
+    return ServiceContainer<T>(
       factory: (context) => widget.initialService,
       builder: widget.build,
     );

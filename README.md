@@ -9,13 +9,14 @@
 </div>
 
 ## Why Use This Library?
-- Designed to work naturally with Flutter widget lifecycle, rather than relying on heavy third-party state management libraries like Riverpod.
 
-- Encourages separation of UI and business logic.
+- **Widget Lifecycle Native:** Designed to work naturally with the Flutter widget lifecycle, avoiding heavy third-party state management overhead.
 
-- Supports async data fetching with automatic rebuilds.
+- **Clean Architecture:** Strongly encourages a strict separation of UI and business logic.
 
-- Testable and predictable, ideal for MVVM-inspired architecture.
+- **Asynchronous & Reactive:** Supports async data fetching with automatic UI rebuilds out of the box.
+
+- **Highly Testable:** Predictable and isolated state management, ideal for MVVM-inspired architectures.
 
 ## Usage
 
@@ -27,7 +28,7 @@ import 'package:service/service.dart';
 /// A simple example service that extends [Service] with integer data.
 /// Each call to [fetchData] increments a static counter.
 class ExampleService extends Service<int> {
-  static int count = 0;
+  int count = 0;
 
   /// Simulates fetching data asynchronously with a 1-second delay.
   @override
@@ -38,21 +39,15 @@ class ExampleService extends Service<int> {
 }
 ```
 
-### Using ServiceWidget
+### Injecting a Single Service via ServiceWidget
 
-`ServiceWidget` is a convenient widget that ties a service to the widget lifecycle:
-
-* Automatically creates and disposes the service.
-* Rebuilds the UI whenever the service notifies listeners.
-* Provides `build` method with the current service instance.
+`ServiceWidget` is a convenient widget that ties a single service directly to the widget lifecycle. It automatically creates and disposes of the service, and rebuilds the UI whenever the service notifies listeners.
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:service/service.dart';
 
 /// A widget that uses [ExampleService] via [ServiceWidget].
-/// Shows a loading indicator while data is being fetched,
-/// and displays the fetched integer once available.
 class ExampleWidget extends ServiceWidget<ExampleService> {
   const ExampleWidget({super.key});
 
@@ -61,16 +56,14 @@ class ExampleWidget extends ServiceWidget<ExampleService> {
   ExampleService get initialService => ExampleService();
 
   /// Builds the UI based on the current state of the service.
-  /// Shows a [CircularProgressIndicator] while loading,
-  /// and displays the service's integer data once loaded.
   @override
   Widget build(BuildContext context, ExampleService service) {
     if (service.isLoading) {
-      return CircularProgressIndicator();
+      return const CircularProgressIndicator();
     }
 
     if (service.isError) {
-      return Text("Service is failed: ${service.error}");
+      return Text("Service failed: ${service.error}");
     }
 
     return RefreshIndicator(
@@ -84,18 +77,66 @@ class ExampleWidget extends ServiceWidget<ExampleService> {
 }
 ```
 
-### Using ServiceBuilder Directly
+### Injecting Multiple Services
 
-`ServiceBuilder` allows you to use services without subclassing `ServiceWidget`.
-It provides a factory for the service and a builder for the UI.
+When a screen or widget tree requires multiple services, you can inject them all at once without nested widget trees by using `MultiServiceWidget` or `MultiServiceContainer`.
+
+#### Subclassing MultiServiceWidget
 
 ```dart
-ServiceBuilder<ExampleService>(
+import 'package:flutter/material.dart';
+import 'package:service/service.dart';
+
+class MyComplexWidget extends MultiServiceWidget {
+  const MyComplexWidget({super.key});
+
+  @override
+  List<Service> get initialServices => [
+    AuthService(),
+    ThemeService(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    // Access the injected services anywhere in the subtree
+    final auth = Service.of<AuthService>(context);
+    final theme = Service.of<ThemeService>(context);
+
+    return Container(
+      color: theme.backgroundColor,
+      child: Text('Hello, ${auth.userName}'),
+    );
+  }
+}
+```
+
+#### Using MultiServiceContainer Directly
+
+If you prefer an inline approach without subclassing, use `MultiServiceContainer`:
+
+```dart
+MultiServiceContainer(
+  entries: [
+    ServiceEntry((context) => AuthService()),
+    ServiceEntry((context) => ThemeService()),
+  ],
+  builder: (context) {
+    final auth = Service.of<AuthService>(context);
+    return Text('User: ${auth.userName}');
+  },
+)
+```
+
+### Using ServiceContainer Directly
+
+If you prefer not to subclass `ServiceWidget` for a single service, you can use `ServiceContainer` inline:
+
+```dart
+ServiceContainer<ExampleService>(
   // Create the initial service instance.
   factory: (_) => ExampleService(),
   builder: (context, service) {
-    // (Exception handling omitted)
-    ...
+    if (service.isLoading) return const CircularProgressIndicator();
 
     // Show the service data once loaded.
     return Text(service.data.toString());
@@ -103,70 +144,77 @@ ServiceBuilder<ExampleService>(
 )
 ```
 
-### Using Provider-like.
-You can easily access a service from an ancestor widget using the following syntax:
+### Accessing Services from the Context
+
+You can easily access an active service instance from any descendant widget in the subtree using the following syntax:
 
 ```dart
 final service = Service.of<MyService>(context);
 ```
 
-### Using ServiceWidgetOf
-If you don't need to directly reference the service instance in your widget tree,
-you can simplify your code by using ServiceWidgetOf instead:
+### Consuming Services via ServiceWidgetOf
+
+If a sub-widget only needs to consume an existing service from the tree without managing its lifecycle, use `ServiceWidgetOf` to keep your code concise:
 
 ```dart
 /// A subtree widget that depends on [ExampleService] using [ServiceWidgetOf].
-/// Displays the loaded integer data with a refresh mechanism.
 class ExampleSubtreeWidget extends ServiceWidgetOf<ExampleService> {
   const ExampleSubtreeWidget({super.key});
 
   @override
   Widget build(BuildContext context, ExampleService service) {
-    return ...;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(service.data.toString()),
+        TextButton(
+          onPressed: service.refresh,
+          child: const Text("Refresh"),
+        ),
+      ],
+    );
   }
 }
 ```
 
-### Using When
-You can use the when extension on the service to declaratively build widgets based on its current state.
-This keeps the UI code concise and clearly maps each state to a corresponding widget:
+### Declarative State Handling with `when`
+
+You can use the `when` extension on any service to declaratively build widgets based on its current state. This eliminates messy conditional statements and maps each state directly to a corresponding widget:
 
 ```dart
 service.when(
-  none: () => Text("Service is none"), // optional fallback when 'loading'
-  loading: () => CircularProgressIndicator(),
-  refresh: () => CircularProgressIndicator(), // optional fallback when 'loaded'
+  none: () => const Text("Service is idle"), // optional fallback when 'loading'
+  loading: () => const CircularProgressIndicator(),
+  refresh: () => const CircularProgressIndicator(), // optional fallback when 'loaded'
   failed: (error) => Text("Service failed: $error"),
   loaded: (data) => Text("Data: $data"),
 );
 ```
 
-### Tip
+---
 
-#### Using Singleton Pattern
-Singletons are useful when you want **only one instance of a service** to exist across your app.  
-This ensures shared state is consistent and avoids creating multiple instances unnecessarily.  
+## Architecture Tips
+
+### Using the Singleton Pattern
+
+Singletons are highly effective when you want **only one instance of a service** to exist across your entire application. This ensures shared state remains consistent and avoids unnecessary re-allocations.
 
 > [!IMPORTANT]
-> Also, declaring a single instance as static and providing it via a Provider is inefficient and goes against the Flutter philosophy.
+> Declaring a single instance as static and forcefully providing it manually goes against Flutter's widget-tree-driven philosophy. Wrap your singletons cleanly using the framework's native entry points.
 
 ```dart
-/// A simple example service that extends [Service] with integer data.
-/// It increments a static counter each time [fetchData] is called.
 class ExampleService extends Service<int> {
   ExampleService._();
 
   /// The singleton instance of [ExampleService].
-  /// Use this instead of creating a new instance
-  /// to ensure a single shared service.
+  /// Use this instead of creating a new instance to ensure a single shared service.
   static final ExampleService instance = ExampleService._();
 
-  static int count = 0;
+  int count = 0;
 
-  // Simulates fetching data asynchronously with a 1-second delay.
   @override
   Future<int> fetchData() async {
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
     return count += 1;
   }
 }

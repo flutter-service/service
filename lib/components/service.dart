@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mvvm_service/mvvm_service.dart';
 
@@ -42,8 +41,7 @@ abstract class Service<T> extends ChangeNotifier {
 
   /// Returns true if the data is currently being loaded or not ready for display.
   /// Typically used to show loading indicators or placeholders.
-  bool get isLoading =>
-      status == ServiceStatus.none || status == ServiceStatus.loading;
+  bool get isLoading => status == ServiceStatus.none || status == ServiceStatus.loading;
 
   /// Returns true if the service is currently refreshing its data.
   /// Useful for pull-to-refresh indicators or temporarily disabling
@@ -179,8 +177,8 @@ abstract class Service<T> extends ChangeNotifier {
   /// Finds the [Service] from the closest instance of this class that
   /// encloses the given context.
   ///
-  /// If no instance of this class encloses the given context, will cause an
-  /// assert in debug mode, and throw an exception in release mode.
+  /// If no instance of this class encloses the given context, will cause
+  /// an assert in debug mode, and throw an exception in release mode.
   static T of<T extends Service>(BuildContext context) {
     final T? result = maybeOf<T>(context);
     if (result != null) {
@@ -197,6 +195,6 @@ abstract class Service<T> extends ChangeNotifier {
 
   @override
   String toString() {
-    return "Service(status: $status, data: $_data, error: $_error)";
+    return "$runtimeType(status: $status, data: $_data, error: $_error)";
   }
 }

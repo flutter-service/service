@@ -6,32 +6,28 @@ import 'package:mvvm_service/mvvm_service.dart';
 typedef ServiceFactory<T extends Service> = T Function(BuildContext context);
 
 /// Signature for a function that creates a widget using the given [Service] instance.
-typedef ServiceWidgetBuilder<T extends Service> = Widget Function(
-  BuildContext context,
-  T service,
-);
+typedef ServiceWidgetBuilder<T extends Service> = Widget Function(BuildContext context, T service);
 
-/// A widget that manages a [Service] instance and rebuilds
-/// whenever the service notifies listeners.
+/// A widget that acts as a container for a [Service] instance,
+/// managing its lifecycle and rebuilding the UI on updates.
 ///
-/// The [ServiceBuilder] automatically creates the service using the provided
-/// [factory] and calls [Service.load] when the widget is initialized.
-/// The [builder] is then used to build the UI with the service.
+/// The [ServiceContainer] automatically creates the service using the provided
+/// [factory] and calls [Service.load] when initialized.
 ///
 /// ```dart
-/// ServiceBuilder(
+/// ServiceContainer(
 ///   factory: (context) => MyService(),
 ///   builder: (context, service) {
 ///     return Text(service.value.toString());
 ///   },
 /// )
 /// ```
-class ServiceBuilder<T extends Service> extends StatefulWidget {
-  /// Creates a [ServiceBuilder] that manages a [Service] instance.
+class ServiceContainer<T extends Service> extends StatefulWidget {
+  /// Creates a [ServiceContainer] that manages a [Service] instance.
   ///
   /// The [factory] must not be null and is used to create the service.
   /// The [builder] must not be null and is used to build the UI using the service.
-  const ServiceBuilder({
+  const ServiceContainer({
     super.key,
     required this.factory,
     required this.builder,
@@ -44,11 +40,11 @@ class ServiceBuilder<T extends Service> extends StatefulWidget {
   final ServiceWidgetBuilder<T> builder;
 
   @override
-  State<ServiceBuilder<T>> createState() => ServiceBuilderState<T>();
+  State<ServiceContainer<T>> createState() => ServiceContainerState<T>();
 }
 
-/// State for a [ServiceBuilder] widget.
-class ServiceBuilderState<T extends Service> extends State<ServiceBuilder<T>> {
+/// State for a [ServiceContainer] widget.
+class ServiceContainerState<T extends Service> extends State<ServiceContainer<T>> {
   late final T _service;
 
   /// Returns the service of the [ServiceBuilder] widget.
@@ -78,8 +74,8 @@ class ServiceBuilderState<T extends Service> extends State<ServiceBuilder<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return ServiceProvider<T>(
-      service: service,
+    return ServiceProvider(
+      services: [service],
       child: ListenableBuilder(
         listenable: _service,
         builder: (context, _) => widget.builder(context, _service),

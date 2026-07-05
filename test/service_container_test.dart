@@ -2,18 +2,18 @@ import 'package:mvvm_service/mvvm_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
 
-import 'service.dart';
+import 'lib/test_service.dart';
 
 void main() {
   testWidgets(
-    "ServiceBuilder creates the service and calls load()",
+    "ServiceContainer creates the service and calls load()",
     (tester) async {
       final service = TestService();
 
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,
-          child: ServiceBuilder<TestService>(
+          child: ServiceContainer<TestService>(
             factory: (context) => service,
             builder: (context, service) {
               return Text(service.maybeData?.toString() ?? "loading");
@@ -28,7 +28,7 @@ void main() {
 
       // Wait for fetchData to complete and trigger UI rebuild.
       await tester.pump();
-      await tester.pump(const Duration(microseconds: 1));
+      await tester.pump(TestService.duration);
 
       // After data is loaded, the UI should rebuild and display the data.
       expect(find.text(TestService.sampleData), findsOneWidget);
@@ -36,14 +36,14 @@ void main() {
   );
 
   testWidgets(
-    "ServiceBuilder rebuilds when service notifies listeners",
+    "ServiceContainer rebuilds when service notifies listeners",
     (tester) async {
       final service = TestService();
 
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,
-          child: ServiceBuilder<TestService>(
+          child: ServiceContainer<TestService>(
             factory: (_) => service,
             builder: (_, service) {
               return Text(service.maybeData.toString());

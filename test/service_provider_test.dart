@@ -2,7 +2,7 @@ import 'package:mvvm_service/mvvm_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
 
-import 'service.dart';
+import 'lib/test_service.dart';
 
 /// A test service-1 that returns a simple string when `fetchData` is called.
 class _TestService1 extends Service<String> {
@@ -23,12 +23,11 @@ void main() {
       final service = TestService();
 
       await tester.pumpWidget(
-        ServiceProvider<TestService>(
-          service: service,
+        ServiceProvider(
+          services: [service],
           child: Builder(
             builder: (context) {
-              final fetchedService =
-                  ServiceProvider.maybeOf<TestService>(context);
+              final fetchedService = ServiceProvider.maybeOf<TestService>(context);
 
               // The fetched service should match the provided service.
               expect(fetchedService, service);
@@ -40,8 +39,7 @@ void main() {
     },
   );
 
-  testWidgets("ServiceProvider.maybeOf returns null when no provider exists",
-      (tester) async {
+  testWidgets("ServiceProvider.maybeOf returns null when no provider exists", (tester) async {
     await tester.pumpWidget(
       Builder(
         builder: (context) {
@@ -63,8 +61,8 @@ void main() {
 
     // Pump the widget with the old service.
     await tester.pumpWidget(
-      ServiceProvider<TestService>(
-        service: oldService,
+      ServiceProvider(
+        services: [oldService],
         child: Builder(
           builder: (context) {
             ServiceProvider.maybeOf<TestService>(context);
@@ -79,8 +77,8 @@ void main() {
 
     // Pump the widget again with a new service.
     await tester.pumpWidget(
-      ServiceProvider<TestService>(
-        service: newService,
+      ServiceProvider(
+        services: [newService],
         child: Builder(
           builder: (context) {
             ServiceProvider.maybeOf<TestService>(context);
@@ -102,17 +100,14 @@ void main() {
       final service2 = _TestService2();
 
       await tester.pumpWidget(
-        ServiceProvider<_TestService1>(
-          service: service1,
-          child: ServiceProvider<_TestService2>(
-            service: service2,
+        ServiceProvider(
+          services: [service1],
+          child: ServiceProvider(
+            services: [service2],
             child: Builder(
               builder: (context) {
-                final fetchedService1 =
-                    ServiceProvider.maybeOf<_TestService1>(context);
-
-                final fetchedService2 =
-                    ServiceProvider.maybeOf<_TestService2>(context);
+                final fetchedService1 = ServiceProvider.maybeOf<_TestService1>(context);
+                final fetchedService2 = ServiceProvider.maybeOf<_TestService2>(context);
 
                 // Verify that each service is correctly provided by its respective ServiceProvider.
                 expect(fetchedService1, service1);

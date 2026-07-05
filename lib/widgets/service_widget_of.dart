@@ -17,8 +17,7 @@ abstract class ServiceWidgetOf<T extends Service> extends StatefulWidget {
 }
 
 /// State for a [ServiceWidgetOf] widget.
-class ServiceWidgetOfState<T extends Service>
-    extends State<ServiceWidgetOf<T>> {
+class ServiceWidgetOfState<T extends Service> extends State<ServiceWidgetOf<T>> {
   @override
   Widget build(BuildContext context) {
     final service = Service.of<T>(context);

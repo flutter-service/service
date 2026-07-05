@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mvvm_service/mvvm_service.dart';
 
-import 'service.dart';
+import 'lib/test_service.dart';
 
 /// A concrete implementation of [ServiceWidgetOf] for testing purposes.
 /// It displays the current [Service.maybeData] or "loading" if null.
@@ -31,7 +31,7 @@ void main() {
         Directionality(
           textDirection: TextDirection.ltr,
           child: ServiceProvider(
-            service: service,
+            services: [service],
             child: widget,
           ),
         ),

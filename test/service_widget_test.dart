@@ -2,7 +2,7 @@ import 'package:mvvm_service/mvvm_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart';
 
-import 'service.dart';
+import 'lib/test_service.dart';
 
 /// A concrete implementation of [ServiceWidget] for testing purposes.
 /// It displays the current [Service.maybeData] or "loading" if null.

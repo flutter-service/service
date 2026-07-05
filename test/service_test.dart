@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:mvvm_service/mvvm_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'service.dart';
+import 'lib/test_service.dart';
 
 void main() {
   test("Initial state of the service should be none", () {
@@ -59,8 +59,8 @@ void main() {
     final service = TestService();
 
     await tester.pumpWidget(
-      ServiceProvider<TestService>(
-        service: service,
+      ServiceProvider(
+        services: [service],
         child: Builder(
           builder: (context) {
             final fetchedService = Service.of<TestService>(context);

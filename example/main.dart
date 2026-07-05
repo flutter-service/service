@@ -4,7 +4,7 @@ import 'package:mvvm_service/mvvm_service.dart';
 /// A simple example service that extends [Service] with integer data.
 /// It increments a static counter each time [fetchData] is called.
 class ExampleService extends Service<int> {
-  static int count = 0;
+  int count = 0;
 
   // Simulates fetching data asynchronously with a 1-second delay.
   @override
@@ -36,6 +36,9 @@ class MainApp extends StatelessWidget {
 /// A widget that uses [ExampleService] via [ServiceWidget].
 /// Displays a loading indicator while data is being fetched,
 /// and the fetched integer once available.
+///
+/// TIP: If you need to manage multiple services at once,
+/// use [MultiServiceWidget] and [MultiServiceContainer].
 class ExampleWidget extends ServiceWidget<ExampleService> {
   const ExampleWidget({super.key});
 
@@ -82,6 +85,9 @@ class ExampleSubtreeWidget extends ServiceWidgetOf<ExampleService> {
 
   @override
   Widget build(BuildContext context, ExampleService service) {
+    // can also be used to access the service instance:
+    // Service.of<ExampleService>(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       spacing: 15,
