@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:mvvm_service/mvvm_service.dart';
 
 /// Signature for the data loading state of a standard [Service].
 enum ServiceStatus {
@@ -62,6 +61,8 @@ abstract class Service<T> extends ChangeNotifier {
   T? _data;
   dynamic _error;
 
+  bool _isDisposed = false;
+
   /// Returns the currently deserialized and loaded data.
   ///
   /// Throws an assertion error if the data is not yet loaded.
@@ -110,6 +111,7 @@ abstract class Service<T> extends ChangeNotifier {
   ///
   /// By default, this sets the state to [ServiceStatus.failed].
   void fail(dynamic error) {
+    if (_isDisposed) return;
     _error = error;
     _status = ServiceStatus.failed;
   }
@@ -118,6 +120,7 @@ abstract class Service<T> extends ChangeNotifier {
   ///
   /// Internally sets the state to [ServiceStatus.loaded] and updates the data.
   void done(T newData) {
+    if (_isDisposed) return;
     _data = newData;
     _status = ServiceStatus.loaded;
   }
@@ -161,36 +164,9 @@ abstract class Service<T> extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _statusNotifier.dispose();
     super.dispose();
-  }
-
-  /// Finds the [Service] from the closest instance of this class that
-  /// encloses the given context.
-  ///
-  /// If no instance of this class encloses the given context, will return null.
-  /// To throw an exception instead, use [of] instead of this function.
-  static T? maybeOf<T extends Service>(BuildContext context) {
-    return ServiceProvider.maybeOf<T>(context);
-  }
-
-  /// Finds the [Service] from the closest instance of this class that
-  /// encloses the given context.
-  ///
-  /// If no instance of this class encloses the given context, will cause
-  /// an assert in debug mode, and throw an exception in release mode.
-  static T of<T extends Service>(BuildContext context) {
-    final T? result = maybeOf<T>(context);
-    if (result != null) {
-      return result;
-    }
-
-    throw FlutterError.fromParts(<DiagnosticsNode>[
-      ErrorSummary(
-        "Service.of<T>() called with a context that does not contain a ServiceProvider<Service<T>>.",
-      ),
-      context.describeElement("The context used was"),
-    ]);
   }
 
   @override

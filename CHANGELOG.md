@@ -17,3 +17,15 @@
 
 ## 1.1.2
 - Fixed the issue where `ServiceWidget<T>` and `ServiceWidgetOf<T>` could not correctly reference an ancestor service due to ServiceProvider not having an explicit generic type, ensuring descendant widgets can now access the service with the proper type.
+
+## 2.0.0
+
+### Breaking Changes
+
+- Replaced `ServiceProvider` with a single root `ServiceScope`.
+- Removed `ServiceWidget` and `ServiceWidgetOf`.
+- Removed `ServiceContainer` and all multi-service container APIs.
+- Removed `Service.of()` and `Service.maybeOf()`.
+- Services are now lazily created through `BuildContext.serviceOf()`.
+- Added automatic service sharing, watching, loading, and lifecycle disposal.
+- Added `ServiceMode.read` and `ServiceMode.watch`.

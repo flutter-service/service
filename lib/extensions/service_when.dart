@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:mvvm_service/mvvm_service.dart';
+import 'package:mvvm_service/components/service.dart';
 
 /// Extension that provides a Flutter widget builder for [Service] states.
 extension ServiceWhen<T> on Service<T> {

@@ -51,26 +51,65 @@ void main() {
     final future = service.refresh();
     expect(service.data, TestService.sampleData);
     expect(service.status, ServiceStatus.refresh);
+
     await future;
+
     expect(service.status, ServiceStatus.loaded);
   });
 
-  testWidgets("Service.of returns the correct service", (tester) async {
-    final service = TestService();
+  testWidgets("serviceOf() returns the correct service", (tester) async {
+    TestService1? service1;
+    TestService2? service2;
 
     await tester.pumpWidget(
-      ServiceProvider(
-        services: [service],
+      ServiceScope(
         child: Builder(
           builder: (context) {
-            final fetchedService = Service.of<TestService>(context);
-
-            // The fetched service should match the provided service.
-            expect(fetchedService, service);
-            return Container();
+            service1 = context.serviceOf(TestService1.new);
+            service2 = context.serviceOf(TestService2.new);
+            return SizedBox();
           },
         ),
       ),
     );
+
+    await tester.pumpAndSettle();
+
+    expect(service1, isNotNull);
+    expect(service1, isNot(service2));
+  });
+
+  testWidgets("service is disposed when element is unmounted", (tester) async {
+    TestService1? service1;
+    TestService2? service2;
+
+    await tester.pumpWidget(
+      ServiceScope(
+        child: Builder(
+          builder: (context) {
+            service1 = context.serviceOf(TestService1.new);
+            service2 = context.serviceOf(TestService2.new);
+            return SizedBox();
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    expect(service1!.isDisposed, isFalse);
+    expect(service2!.isDisposed, isFalse);
+
+    await tester.pumpWidget(const ServiceScope(child: SizedBox()));
+    expect(service1!.isDisposed, isTrue);
+    expect(service2!.isDisposed, isTrue);
+  });
+
+  test('ignores a load result after dispose', () async {
+    final service = TestService();
+    final loading = service.load();
+    service.dispose();
+
+    await expectLater(loading, completes);
+    expect(service.maybeData, isNull);
   });
 }

@@ -26,31 +26,25 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: SafeArea(child: Center(child: ExampleWidget())),
+      home: ServiceScope(
+        child: Scaffold(
+          body: SafeArea(child: Center(child: ExampleWidget())),
+        ),
       ),
     );
   }
 }
 
-/// A widget that uses [ExampleService] via [ServiceWidget].
+/// A widget that creates and watches [ExampleService] via [serviceOf].
 /// Displays a loading indicator while data is being fetched,
 /// and the fetched integer once available.
-///
-/// TIP: If you need to manage multiple services at once,
-/// use [MultiServiceWidget] and [MultiServiceContainer].
-class ExampleWidget extends ServiceWidget<ExampleService> {
+class ExampleWidget extends StatelessWidget {
   const ExampleWidget({super.key});
 
-  /// Provides the initial instance of [ExampleService].
   @override
-  ExampleService get initialService => ExampleService();
+  Widget build(BuildContext context) {
+    final service = context.serviceOf(ExampleService.new);
 
-  /// Builds the UI based on the current state of the service.
-  /// Shows a [CircularProgressIndicator] while loading,
-  /// and displays the service's integer data once loaded.
-  @override
-  Widget build(BuildContext context, ExampleService service) {
     // Alternatively, you can use the `when` extension on the service
     // to declaratively build widgets based on its current state.
     // This keeps the UI code concise and clearly maps each state
@@ -78,15 +72,14 @@ class ExampleWidget extends ServiceWidget<ExampleService> {
   }
 }
 
-/// A subtree widget that depends on [ExampleService] using [ServiceWidgetOf].
+/// A subtree widget that watches the existing [ExampleService].
 /// Displays the loaded integer data with a refresh mechanism.
-class ExampleSubtreeWidget extends ServiceWidgetOf<ExampleService> {
+class ExampleSubtreeWidget extends StatelessWidget {
   const ExampleSubtreeWidget({super.key});
 
   @override
-  Widget build(BuildContext context, ExampleService service) {
-    // can also be used to access the service instance:
-    // Service.of<ExampleService>(context);
+  Widget build(BuildContext context) {
+    final service = context.serviceOf(ExampleService.new);
 
     return Column(
       mainAxisSize: MainAxisSize.min,

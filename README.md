@@ -1,175 +1,87 @@
 <div align="center">
-    <img width="200px" src="https://github.com/flutter-service/service/raw/refs/heads/main/image/logo.png">
-    <h1>Flutter Service</h1>
-    <p>
-        A Flutter-native service layer inspired by the MVVM pattern,<br>
-        managing services according to the widget lifecycle,<br>
-        without relying on Provider or Riverpod.
-    </p>
+  <img width="200px" src="https://github.com/flutter-service/service/raw/refs/heads/main/image/logo.png">
+  <h1>Flutter Service</h1>
+  <p>
+    A Flutter-native MVVM service layer that creates, loads, watches,<br>
+    shares, and disposes services according to the widget lifecycle.
+  </p>
 </div>
 
-## Why Use This Library?
+## Why Flutter Service?
 
-- **Widget Lifecycle Native:** Designed to work naturally with the Flutter widget lifecycle, avoiding heavy third-party state management overhead.
+- **No service registration:** Create a service where it is first used with `context.serviceOf()`.
+- **Minimal boilerplate:** No provider declarations, consumer widgets, or generated code.
+- **Automatic async state:** Loading, loaded, refresh, and error states are built into `Service`.
+- **Reactive UI:** Widgets automatically rebuild when a watched service notifies listeners.
+- **Widget-bound lifecycle:** A service is disposed when no elements are using it anymore.
+- **Shared by type:** Widgets under the same `ServiceScope` reuse the same service instance.
 
-- **Clean Architecture:** Strongly encourages a strict separation of UI and business logic.
+## Quick Start
 
-- **Asynchronous & Reactive:** Supports async data fetching with automatic UI rebuilds out of the box.
+### 1. Define a service
 
-- **Highly Testable:** Predictable and isolated state management, ideal for MVVM-inspired architectures.
-
-## Usage
-
-### Defining a Service
+Extend `Service<T>` and implement `fetchData()`:
 
 ```dart
-import 'package:service/service.dart';
-
-/// A simple example service that extends [Service] with integer data.
-/// Each call to [fetchData] increments a static counter.
-class ExampleService extends Service<int> {
+class CounterService extends Service<int> {
   int count = 0;
 
-  /// Simulates fetching data asynchronously with a 1-second delay.
   @override
   Future<int> fetchData() async {
-    await Future.delayed(Duration(seconds: 1));
-    return count += 1; // Increment and return the counter
+    await Future<void>.delayed(const Duration(seconds: 1));
+    return ++count;
   }
 }
 ```
 
-### Injecting a Single Service via ServiceWidget
+When the service is first created, `load()` is called automatically. The value returned by `fetchData()` becomes `data` and the status changes to `ServiceStatus.loaded`.
 
-`ServiceWidget` is a convenient widget that ties a single service directly to the widget lifecycle. It automatically creates and disposes of the service, and rebuilds the UI whenever the service notifies listeners.
+### 2. Add one ServiceScope
+
+Place a single `ServiceScope` near the root of the widget tree:
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:service/service.dart';
+void main() {
+  runApp(
+    const ServiceScope(
+      child: MainApp(),
+    ),
+  );
+}
+```
 
-/// A widget that uses [ExampleService] via [ServiceWidget].
-class ExampleWidget extends ServiceWidget<ExampleService> {
-  const ExampleWidget({super.key});
+Only one `ServiceScope` may exist in a widget tree. It owns all active service instances and manages their subscriptions and lifecycles.
 
-  /// Provides the initial instance of [ExampleService].
+### 3. Use the service
+
+Call `context.serviceOf()` from a widget:
+
+```dart
+class CounterView extends StatelessWidget {
+  const CounterView({super.key});
+
   @override
-  ExampleService get initialService => ExampleService();
+  Widget build(BuildContext context) {
+    final service = context.serviceOf(CounterService.new);
 
-  /// Builds the UI based on the current state of the service.
-  @override
-  Widget build(BuildContext context, ExampleService service) {
     if (service.isLoading) {
       return const CircularProgressIndicator();
     }
 
     if (service.isError) {
-      return Text("Service failed: ${service.error}");
+      return Text('Failed: ${service.error}');
     }
 
-    return RefreshIndicator(
-      onRefresh: service.refresh,
-      child: Opacity(
-        opacity: service.isRefreshing ? 0.5 : 1,
-        child: Text(service.data.toString()),
-      ),
-    );
-  }
-}
-```
-
-### Injecting Multiple Services
-
-When a screen or widget tree requires multiple services, you can inject them all at once without nested widget trees by using `MultiServiceWidget` or `MultiServiceContainer`.
-
-#### Subclassing MultiServiceWidget
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:service/service.dart';
-
-class MyComplexWidget extends MultiServiceWidget {
-  const MyComplexWidget({super.key});
-
-  @override
-  List<Service> get initialServices => [
-    AuthService(),
-    ThemeService(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    // Access the injected services anywhere in the subtree
-    final auth = Service.of<AuthService>(context);
-    final theme = Service.of<ThemeService>(context);
-
-    return Container(
-      color: theme.backgroundColor,
-      child: Text('Hello, ${auth.userName}'),
-    );
-  }
-}
-```
-
-#### Using MultiServiceContainer Directly
-
-If you prefer an inline approach without subclassing, use `MultiServiceContainer`:
-
-```dart
-MultiServiceContainer(
-  entries: [
-    ServiceEntry((context) => AuthService()),
-    ServiceEntry((context) => ThemeService()),
-  ],
-  builder: (context) {
-    final auth = Service.of<AuthService>(context);
-    return Text('User: ${auth.userName}');
-  },
-)
-```
-
-### Using ServiceContainer Directly
-
-If you prefer not to subclass `ServiceWidget` for a single service, you can use `ServiceContainer` inline:
-
-```dart
-ServiceContainer<ExampleService>(
-  // Create the initial service instance.
-  factory: (_) => ExampleService(),
-  builder: (context, service) {
-    if (service.isLoading) return const CircularProgressIndicator();
-
-    // Show the service data once loaded.
-    return Text(service.data.toString());
-  },
-)
-```
-
-### Accessing Services from the Context
-
-You can easily access an active service instance from any descendant widget in the subtree using the following syntax:
-
-```dart
-final service = Service.of<MyService>(context);
-```
-
-### Consuming Services via ServiceWidgetOf
-
-If a sub-widget only needs to consume an existing service from the tree without managing its lifecycle, use `ServiceWidgetOf` to keep your code concise:
-
-```dart
-/// A subtree widget that depends on [ExampleService] using [ServiceWidgetOf].
-class ExampleSubtreeWidget extends ServiceWidgetOf<ExampleService> {
-  const ExampleSubtreeWidget({super.key});
-
-  @override
-  Widget build(BuildContext context, ExampleService service) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(service.data.toString()),
+        Opacity(
+          opacity: service.isRefreshing ? 0.5 : 1,
+          child: Text('${service.data}'),
+        ),
         TextButton(
           onPressed: service.refresh,
-          child: const Text("Refresh"),
+          child: const Text('Refresh'),
         ),
       ],
     );
@@ -177,45 +89,131 @@ class ExampleSubtreeWidget extends ServiceWidgetOf<ExampleService> {
 }
 ```
 
-### Declarative State Handling with `when`
+`serviceOf()` lazily creates `CounterService`, starts its initial load, and rebuilds `CounterView` whenever the service changes.
 
-You can use the `when` extension on any service to declaratively build widgets based on its current state. This eliminates messy conditional statements and maps each state directly to a corresponding widget:
+## Watch and Read Modes
+
+`ServiceMode.watch` is the default. It subscribes the calling element to service updates:
 
 ```dart
-service.when(
-  none: () => const Text("Service is idle"), // optional fallback when 'loading'
-  loading: () => const CircularProgressIndicator(),
-  refresh: () => const CircularProgressIndicator(), // optional fallback when 'loaded'
-  failed: (error) => Text("Service failed: $error"),
-  loaded: (data) => Text("Data: $data"),
+final service = context.serviceOf(CounterService.new);
+```
+
+This is equivalent to:
+
+```dart
+final service = context.serviceOf(
+  CounterService.new,
+  mode: ServiceMode.watch,
 );
 ```
 
----
-
-## Architecture Tips
-
-### Using the Singleton Pattern
-
-Singletons are highly effective when you want **only one instance of a service** to exist across your entire application. This ensures shared state remains consistent and avoids unnecessary re-allocations.
-
-> [!IMPORTANT]
-> Declaring a single instance as static and forcefully providing it manually goes against Flutter's widget-tree-driven philosophy. Wrap your singletons cleanly using the framework's native entry points.
+Use `ServiceMode.read` when the widget needs the instance without rebuilding when it changes:
 
 ```dart
-class ExampleService extends Service<int> {
-  ExampleService._();
+final service = context.serviceOf(
+  CounterService.new,
+  mode: ServiceMode.read,
+);
+```
 
-  /// The singleton instance of [ExampleService].
-  /// Use this instead of creating a new instance to ensure a single shared service.
-  static final ExampleService instance = ExampleService._();
+Read mode still associates the service with the calling element for lifecycle management. It only disables reactive rebuilds.
 
-  int count = 0;
+Each service is independently created, shared, watched, and disposed.
 
-  @override
-  Future<int> fetchData() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return count += 1;
-  }
+## Declarative State Handling
+
+The `when` extension maps every `ServiceStatus` to a widget:
+
+```dart
+@override
+Widget build(BuildContext context) {
+  final service = context.serviceOf(CounterService.new);
+
+  return service.when(
+    none: () => const Text('Idle'),
+    loading: () => const CircularProgressIndicator(),
+    refresh: (data) => Text('Refreshing: $data'),
+    loaded: (data) => Text('Count: $data'),
+    failed: (error) => Text('Failed: $error'),
+  );
 }
+```
+
+`none` falls back to `loading` when omitted, and `refresh` falls back to `loaded` when omitted.
+
+## Service State
+
+Every service exposes:
+
+| API | Description |
+| --- | --- |
+| `status` | Current `ServiceStatus` |
+| `isLoading` | `true` while idle or loading |
+| `isRefreshing` | `true` during a refresh |
+| `isError` | `true` after a failed load |
+| `data` | Loaded data; intended for loaded or refreshing states |
+| `maybeData` | Current data, or `null` when unavailable |
+| `error` | Current error in the failed state |
+| `maybeError` | Current error, or `null` when unavailable |
+| `load()` | Loads data and replaces the current state |
+| `refresh()` | Reloads while retaining existing data |
+| `notifyUpdated()` | Notifies watching widgets after a custom state change |
+
+You can also assign `data` directly. A changed value automatically notifies watching widgets:
+
+```dart
+service.data = 42;
+```
+
+## Lifecycle
+
+Services are cached by their requested generic type inside `ServiceScope`:
+
+```dart
+final first = context.serviceOf(CounterService.new);
+final second = context.serviceOf(CounterService.new);
+
+identical(first, second); // true
+```
+
+The creation callback only runs when no service of type `T` is active. Elements using the service are tracked as readers or watchers. When the last dependent element is removed from the widget tree, the subscription is cancelled and the service is disposed.
+
+Because services are keyed by type, only one active instance of each service type exists within the scope. If the same type is requested with different factories or constructor arguments, the first active instance is reused:
+
+```dart
+final first = context.serviceOf(() => UserService(userId: 1));
+final same = context.serviceOf(() => UserService(userId: 2));
+
+identical(first, same); // true
+```
+
+Use distinct service types when independently configured instances are required.
+
+## Error Handling
+
+Errors thrown by `fetchData()` are captured automatically:
+
+```dart
+class UserService extends Service<User> {
+  @override
+  Future<User> fetchData() => api.fetchUser();
+}
+```
+
+On failure:
+
+- `status` becomes `ServiceStatus.failed`.
+- `isError` becomes `true`.
+- The exception is available through `error` and `maybeError`.
+- The error is printed with `debugPrint` by default.
+
+Override these properties to customize error behavior:
+
+```dart
+@override
+bool get canRethrow => true;
+
+@override
+bool get canDebugPrint => false;
 ```
