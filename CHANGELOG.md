@@ -29,3 +29,8 @@
 - Services are now lazily created through `BuildContext.serviceOf()`.
 - Added automatic service sharing, watching, loading, and lifecycle disposal.
 - Added `ServiceMode.read` and `ServiceMode.watch`.
+
+## 2.1.0
+
+- Added an optional `key` parameter to `BuildContext.serviceOf()`, allowing multiple independently configured instances of the same service type.
+- Added and exported `ServiceId` to identify services by their type and optional key.

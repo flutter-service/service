@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:mvvm_service/components/service.dart';
+import 'package:mvvm_service/components/service_id.dart';
 import 'package:mvvm_service/components/service_mode.dart';
 import 'package:mvvm_service/widgets/service_scope.dart';
 
@@ -10,6 +11,7 @@ extension ServiceBuildContext on BuildContext {
   /// its lifecycle to this [BuildContext]'s widget lifecycle.
   T serviceOf<T extends Service>(
     T Function() create, {
+    Key? key,
     ServiceMode mode = ServiceMode.watch,
   }) {
     final element = getElementForInheritedWidgetOfExactType<ServiceScope>();
@@ -21,6 +23,7 @@ extension ServiceBuildContext on BuildContext {
       );
     }
 
-    return element.ensureService<T>(this as Element, mode, create);
+    final id = ServiceId(key: key, type: T);
+    return element.ensureService<T>(this as Element, id, mode, create);
   }
 }

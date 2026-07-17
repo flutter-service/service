@@ -1,6 +1,6 @@
 name: mvvm_service
 description: A Flutter-native MVVM service layer that creates, loads, watches, shares, and disposes services according to the widget lifecycle.
-version: 2.0.0
+version: 2.1.0
 publisher: ttankkeo112@gmail.com
 repository: https://github.com/flutter-service/service
 keywords:
@@ -17,6 +17,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
+  equatable: ^2.1.0
   flutter:
     sdk: flutter
 

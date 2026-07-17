@@ -112,4 +112,24 @@ void main() {
     await expectLater(loading, completes);
     expect(service.maybeData, isNull);
   });
+
+  testWidgets('serviceOf() returns different instances for different keys', (tester) async {
+    TestService? service1;
+    TestService? service2;
+
+    await tester.pumpWidget(
+      ServiceScope(
+        child: Builder(
+          builder: (context) {
+            service1 = context.serviceOf(TestService.new, key: ValueKey(1));
+            service2 = context.serviceOf(TestService.new, key: ValueKey(2));
+            return SizedBox();
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    expect(service1, isNot(same(service2)));
+  });
 }

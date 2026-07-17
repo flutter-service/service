@@ -1,5 +1,6 @@
 library;
 
+export 'components/service_id.dart';
 export 'components/service_mode.dart';
 export 'components/service_subscription.dart';
 export 'components/service.dart';

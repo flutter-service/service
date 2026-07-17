@@ -9,12 +9,12 @@
 
 ## Why Flutter Service?
 
-- **No service registration:** Create a service where it is first used with `context.serviceOf()`.
-- **Minimal boilerplate:** No provider declarations, consumer widgets, or generated code.
-- **Automatic async state:** Loading, loaded, refresh, and error states are built into `Service`.
-- **Reactive UI:** Widgets automatically rebuild when a watched service notifies listeners.
-- **Widget-bound lifecycle:** A service is disposed when no elements are using it anymore.
-- **Shared by type:** Widgets under the same `ServiceScope` reuse the same service instance.
+| Feature | Description |
+| ------- | ----------- |
+| 🍃 **Minimal setup** | Create services where they are first used—no registration or generated code. |
+| ⏳ **Async state** | Built-in loading, refresh, loaded, and error states. |
+| 🔔 **Reactive lifecycle** | Rebuilds watchers and disposes unused services automatically. |
+| 🔑 **Keyed sharing** | Share or separate services by type and optional key. |
 
 ## Quick Start
 
@@ -102,19 +102,13 @@ final service = context.serviceOf(CounterService.new);
 This is equivalent to:
 
 ```dart
-final service = context.serviceOf(
-  CounterService.new,
-  mode: ServiceMode.watch,
-);
+final service = context.serviceOf(CounterService.new, mode: .watch);
 ```
 
 Use `ServiceMode.read` when the widget needs the instance without rebuilding when it changes:
 
 ```dart
-final service = context.serviceOf(
-  CounterService.new,
-  mode: ServiceMode.read,
-);
+final service = context.serviceOf(CounterService.new, mode: .read);
 ```
 
 Read mode still associates the service with the calling element for lifecycle management. It only disables reactive rebuilds.
@@ -168,27 +162,27 @@ service.data = 42;
 
 ## Lifecycle
 
-Services are cached by their requested generic type inside `ServiceScope`:
+Services are cached by their requested generic type and optional key inside `ServiceScope`. Without a key, requests for the same type reuse the first active instance, even when they use different factories or constructor arguments:
 
 ```dart
-final first = context.serviceOf(CounterService.new);
-final second = context.serviceOf(CounterService.new);
+final first = context.serviceOf(() => UserService(userId: 1));
+final second = context.serviceOf(() => UserService(userId: 2));
 
 identical(first, second); // true
 ```
 
-The creation callback only runs when no service of type `T` is active. Elements using the service are tracked as readers or watchers. When the last dependent element is removed from the widget tree, the subscription is cancelled and the service is disposed.
-
-Because services are keyed by type, only one active instance of each service type exists within the scope. If the same type is requested with different factories or constructor arguments, the first active instance is reused:
+Use keys when independently configured instances of the same service type are required:
 
 ```dart
-final first = context.serviceOf(() => UserService(userId: 1));
-final same = context.serviceOf(() => UserService(userId: 2));
+final first = context.serviceOf(() => UserService(userId: 1), key: const ValueKey(1));
+final second = context.serviceOf(() => UserService(userId: 2), key: const ValueKey(2));
 
-identical(first, same); // true
+identical(first, second); // false
 ```
 
-Use distinct service types when independently configured instances are required.
+Requests with equal keys share the same instance. Use stable keys such as `ValueKey`; creating a new `UniqueKey` during every build creates a new service each time.
+
+A service accessed by an element remains associated with that element until it is removed from the widget tree, even if a later build no longer requests that service or uses a different key.
 
 ## Error Handling
 
