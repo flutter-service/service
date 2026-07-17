@@ -15,6 +15,7 @@
 | ⏳ **Async state** | Built-in loading, refresh, loaded, and error states. |
 | 🔔 **Reactive lifecycle** | Rebuilds watchers and disposes unused services automatically. |
 | 🔑 **Keyed sharing** | Share or separate services by type and optional key. |
+| 💡 **Reactive state** | Create and watch shared state with `context.stateOf()`. |
 
 ## Quick Start
 
@@ -114,6 +115,63 @@ final service = context.serviceOf(CounterService.new, mode: .read);
 Read mode still associates the service with the calling element for lifecycle management. It only disables reactive rebuilds.
 
 Each service is independently created, shared, watched, and disposed.
+
+## Reactive State
+
+Use `context.stateOf()` for simple reactive values that do not need a full `Service`. Enable state support with `ServiceScope.withState`:
+
+```dart
+void main() {
+  runApp(
+    ServiceScope.withState(
+      child: const MainApp(),
+    ),
+  );
+}
+```
+
+You can also place a standalone `StateScope` around only the subtree that needs state.
+
+`stateOf()` returns a `ValueNotifier<T>` and rebuilds the calling widget when its value changes:
+
+```dart
+class CounterView extends StatelessWidget {
+  const CounterView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final counter = context.stateOf(() => 0);
+
+    return TextButton(
+      onPressed: () => counter.value++,
+      child: Text('${counter.value}'),
+    );
+  }
+}
+```
+
+Each unkeyed call is identified by its type and invocation order. Keep calls in a stable order, or provide a key when calls may be conditional or reordered:
+
+```dart
+final counter = context.stateOf(() => 0, key: const ValueKey('counter'));
+```
+
+Use `StateMode.read` to access the notifier without rebuilding the widget when its value changes:
+
+```dart
+final counter = context.stateOf(() => 0, mode: .read);
+```
+
+Use `onDispose` to clean up resources held by the state. The callback receives the state's last value when it is removed from the scope:
+
+```dart
+final controller = context.stateOf(
+  TextEditingController.new,
+  onDispose: (controller) => controller.dispose(),
+);
+```
+
+State notifiers are shared by their type and key and are automatically disposed when no dependent elements remain.
 
 ## Declarative State Handling
 

@@ -58,8 +58,8 @@ void main() {
   });
 
   testWidgets("serviceOf() returns the correct service", (tester) async {
-    TestService1? service1;
-    TestService2? service2;
+    late TestService1 service1;
+    late TestService2 service2;
 
     await tester.pumpWidget(
       ServiceScope(
@@ -74,14 +74,12 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-
-    expect(service1, isNotNull);
     expect(service1, isNot(service2));
   });
 
   testWidgets("service is disposed when element is unmounted", (tester) async {
-    TestService1? service1;
-    TestService2? service2;
+    late TestService1 service1;
+    late TestService2 service2;
 
     await tester.pumpWidget(
       ServiceScope(
@@ -96,12 +94,12 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    expect(service1!.isDisposed, isFalse);
-    expect(service2!.isDisposed, isFalse);
+    expect(service1.isDisposed, isFalse);
+    expect(service2.isDisposed, isFalse);
 
     await tester.pumpWidget(const ServiceScope(child: SizedBox()));
-    expect(service1!.isDisposed, isTrue);
-    expect(service2!.isDisposed, isTrue);
+    expect(service1.isDisposed, isTrue);
+    expect(service2.isDisposed, isTrue);
   });
 
   test('ignores a load result after dispose', () async {
@@ -114,8 +112,8 @@ void main() {
   });
 
   testWidgets('serviceOf() returns different instances for different keys', (tester) async {
-    TestService? service1;
-    TestService? service2;
+    late TestService service1;
+    late TestService service2;
 
     await tester.pumpWidget(
       ServiceScope(
@@ -131,5 +129,54 @@ void main() {
 
     await tester.pumpAndSettle();
     expect(service1, isNot(same(service2)));
+  });
+
+  testWidgets('serviceOf() rebuilds the widget when the service status changes', (tester) async {
+    late TestService service;
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: ServiceScope.withState(
+          child: Builder(
+            builder: (context) {
+              service = context.serviceOf(TestService.new);
+              return Text(service.status.name.toString());
+            },
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('loading'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('loaded'), findsOneWidget);
+  });
+
+  testWidgets('serviceOf() rebuilds the widget when the service data changes', (tester) async {
+    late TestService service;
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: ServiceScope.withState(
+          child: Builder(
+            builder: (context) {
+              service = context.serviceOf(TestService.new);
+              return Text(service.maybeData.toString());
+            },
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('null'), findsOneWidget);
+    await tester.pumpAndSettle();
+
+    expect(find.text(TestService.sampleData), findsOneWidget);
+    service.data = "Hello, World! 2";
+
+    await tester.pumpAndSettle();
+    expect(find.text(service.data), findsOneWidget);
   });
 }

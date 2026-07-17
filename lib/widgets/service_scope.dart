@@ -3,9 +3,10 @@ import 'package:mvvm_service/components/service.dart';
 import 'package:mvvm_service/components/service_id.dart';
 import 'package:mvvm_service/components/service_mode.dart';
 import 'package:mvvm_service/components/service_subscription.dart';
+import 'package:mvvm_service/widgets/state_scope.dart';
 
-/// A widget that hosts the [ServiceScopeElement] to manage and provide
-/// application-wide services down the widget subtree.
+/// A widget that hosts the [ServiceScopeElement] to manage and
+/// provide application-wide services down the widget subtree.
 ///
 /// Only one [ServiceScope] should exist near the root of the widget tree.
 class ServiceScope extends InheritedWidget {
@@ -13,6 +14,11 @@ class ServiceScope extends InheritedWidget {
     super.key,
     required super.child,
   });
+
+  ServiceScope.withState({
+    super.key,
+    required Widget child,
+  }) : super(child: StateScope(child: child));
 
   @override
   InheritedElement createElement() => ServiceScopeElement(this);
@@ -36,7 +42,7 @@ class ServiceScopeElement extends InheritedElement {
   /// (and their lifecycles) and tracking which elements are listening to them.
   final Map<ServiceId, ServiceSubscription> _subscriptions = {};
 
-  /// Tracks the service types used by each dependent element.
+  /// Tracks the service id used by each dependent element.
   final Map<Element, Set<ServiceId>> _serviceDependents = {};
 
   @override
@@ -131,6 +137,7 @@ class ServiceScopeElement extends InheritedElement {
     }
 
     _subscriptions.clear();
+    _serviceDependents.clear();
     super.unmount();
   }
 }

@@ -34,3 +34,12 @@
 
 - Added an optional `key` parameter to `BuildContext.serviceOf()`, allowing multiple independently configured instances of the same service type.
 - Added and exported `ServiceId` to identify services by their type and optional key.
+
+## 2.2.0
+
+- Added `BuildContext.stateOf()` for creating reactive state backed by `ValueNotifier`.
+- Added `StateScope` and the `ServiceScope.withState` convenience constructor.
+- Added `StateMode.read` and `StateMode.watch` to control widget rebuilds.
+- Added automatic state identity based on type and invocation order, with optional keys for explicit sharing or separation.
+- Added an `onDispose` callback for cleaning up resources held by state values.
+- Added automatic disposal when a state no longer has dependent elements.
