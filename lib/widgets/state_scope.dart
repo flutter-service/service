@@ -73,6 +73,8 @@ class StateScopeElement extends InheritedElement {
     Function(T)? onDispose,
   ) {
     if (id.key == null) {
+      assert(id.element != null, 'Shared state requires an explicit key.');
+
       final currentFrame = WidgetsBinding.instance.platformDispatcher.frameData.frameNumber;
       final counters = _elementKeyCounters.putIfAbsent(dependent, () => {});
       final counter = counters.putIfAbsent(T, () => _BuildCounter());
@@ -84,7 +86,7 @@ class StateScopeElement extends InheritedElement {
         counter.count += 1;
       }
 
-      id = StateId(key: ValueKey(counter.count), type: T);
+      id = StateId(element: id.element, key: ValueKey(counter.count), type: T);
     }
 
     // Retrieve the existing state or lazily create a new one.

@@ -50,3 +50,9 @@
 - Added hooks for scroll, page, tab, text editing, animation, focus, ticker provider, and stream controllers.
 - Added `useTickerProvider()` and its `useVsync()` alias for animation hooks.
 - Added and exported `HookTickerProvider` for managing the lifecycle of hook-created tickers.
+
+## 2.4.0
+
+- Fixed `stateOf()` state identity to include the owning element, preventing state and hook instances from being shared across different widgets.
+- Updated state lifecycle behavior so each element retains and disposes its own state instances independently.
+- Added `sharedStateOf()` for explicitly sharing keyed state across elements in the same `StateScope`.

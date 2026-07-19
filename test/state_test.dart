@@ -66,4 +66,72 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('0'), findsOneWidget);
   });
+
+  testWidgets('stateOf() creates separate states for different elements', (tester) async {
+    late ValueNotifier<int> state1;
+    late ValueNotifier<int> state2;
+
+    final Key key = ValueKey(1);
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: ServiceScope.withState(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Builder(
+                builder: (context) {
+                  state1 = context.stateOf(() => 1, key: key);
+                  return SizedBox();
+                },
+              ),
+              Builder(
+                builder: (context) {
+                  state2 = context.stateOf(() => 2, key: key);
+                  return SizedBox();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(state1, isNot(state2));
+  });
+
+  testWidgets('sharedStateOf() shares state across elements with the same key', (tester) async {
+    late ValueNotifier<int> state1;
+    late ValueNotifier<int> state2;
+
+    final Key key = ValueKey(1);
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: ServiceScope.withState(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Builder(
+                builder: (context) {
+                  state1 = context.sharedStateOf(() => 1, key: key);
+                  return SizedBox();
+                },
+              ),
+              Builder(
+                builder: (context) {
+                  state2 = context.sharedStateOf(() => 2, key: key);
+                  return SizedBox();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(state1, same(state2));
+  });
 }

@@ -51,7 +51,34 @@ extension ServiceBuildContext on BuildContext {
       );
     }
 
-    final id = StateId(key: key, type: T);
-    return element.ensureState<T>(this as Element, id, mode, create, onDispose);
+    final dependent = this as Element;
+    final id = StateId(element: dependent, key: key, type: T);
+    return element.ensureState<T>(dependent, id, mode, create, onDispose);
+  }
+
+  /// Retrieves or lazily creates state shared by [key]
+  /// across elements under the same [StateScope].
+  ///
+  /// [onDispose] is called with the current value when
+  /// the last dependent element is removed and
+  /// the shared state is disposed.
+  ValueNotifier<T> sharedStateOf<T>(
+    T Function() create, {
+    required Key key,
+    StateMode mode = StateMode.watch,
+    Function(T)? onDispose,
+  }) {
+    final element = getElementForInheritedWidgetOfExactType<StateScope>();
+
+    if (element is! StateScopeElement) {
+      throw FlutterError(
+        'StateScope was not found above this BuildContext.\n'
+        'Place StateScope above this context or use ServiceScope.withState.',
+      );
+    }
+
+    final dependent = this as Element;
+    final id = StateId(element: null, key: key, type: T);
+    return element.ensureState<T>(dependent, id, mode, create, onDispose);
   }
 }

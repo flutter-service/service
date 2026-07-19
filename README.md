@@ -15,7 +15,7 @@
 | ⏳ **Async state** | Built-in loading, refresh, loaded, and error states. |
 | 🔔 **Reactive lifecycle** | Rebuilds watchers and disposes unused services automatically. |
 | 🔑 **Keyed sharing** | Share or separate services by type and optional key. |
-| 💡 **Reactive state** | Create and watch shared state with `context.stateOf()`. |
+| 💡 **Reactive state** | Create element-scoped or shared state with `context.stateOf()`. |
 
 ## Quick Start
 
@@ -150,11 +150,22 @@ class CounterView extends StatelessWidget {
 }
 ```
 
-Each unkeyed call is identified by its type and invocation order. Keep calls in a stable order, or provide a key when calls may be conditional or reordered:
+Each state belongs to the element that calls `stateOf()`. Unkeyed calls within that element are identified by their type and invocation order. Keep calls in a stable order, or provide a key when calls may be conditional or reordered:
 
 ```dart
 final counter = context.stateOf(() => 0, key: const ValueKey('counter'));
 ```
+
+By default, different elements receive separate state instances. Use `sharedStateOf()` with an explicit key to share state across elements under the same `StateScope`:
+
+```dart
+final counter = context.sharedStateOf(
+  () => 0,
+  key: const ValueKey('shared-counter'),
+);
+```
+
+Calls to `sharedStateOf()` using the same type and key return the same notifier. The first creation callback supplies its initial value.
 
 Use `StateMode.read` to access the notifier without rebuilding the widget when its value changes:
 
@@ -171,7 +182,7 @@ final controller = context.stateOf(
 );
 ```
 
-State notifiers are shared by their type and key and are automatically disposed when no dependent elements remain.
+Local state is retained across rebuilds and disposed when its owning element is removed. Shared state remains active until its last dependent element is removed.
 
 ## BuildContext Hooks
 
@@ -196,7 +207,7 @@ class ItemsView extends StatelessWidget {
 }
 ```
 
-The controller is reused across rebuilds and disposed automatically when it no longer has dependent elements.
+The controller is reused across rebuilds of the calling element, isolated from controllers created by other elements, and disposed automatically when its element is removed.
 
 Available hooks:
 
