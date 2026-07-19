@@ -173,6 +173,57 @@ final controller = context.stateOf(
 
 State notifiers are shared by their type and key and are automatically disposed when no dependent elements remain.
 
+## BuildContext Hooks
+
+Common Flutter controllers can be created directly from `BuildContext` without converting a widget to `StatefulWidget`. Hooks use `stateOf()` internally, so the widget tree must include `StateScope` or `ServiceScope.withState`.
+
+```dart
+class ItemsView extends StatelessWidget {
+  const ItemsView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = context.useScrollController();
+
+    return ListView.builder(
+      controller: controller,
+      itemCount: 100,
+      itemBuilder: (context, index) => ListTile(
+        title: Text('Item $index'),
+      ),
+    );
+  }
+}
+```
+
+The controller is reused across rebuilds and disposed automatically when it no longer has dependent elements.
+
+Available hooks:
+
+| Hook | Creates |
+| --- | --- |
+| `useScrollController()` | `ScrollController` |
+| `usePageController()` | `PageController` |
+| `useTabController()` | `TabController` |
+| `useTextEditingController()` | `TextEditingController` |
+| `useFocusNode()` | `FocusNode` |
+| `useTickerProvider()` / `useVsync()` | `TickerProvider` |
+| `useAnimationController()` | `AnimationController` |
+| `useStreamController<T>()` | `StreamController<T>` |
+| `useStreamControllerBroadcast<T>()` | `StreamController<T>.broadcast` |
+
+Hooks that animate require a ticker provider:
+
+```dart
+final vsync = context.useVsync();
+final animation = context.useAnimationController(
+  vsync: vsync,
+  duration: const Duration(milliseconds: 300),
+);
+```
+
+Call hooks during `build` and keep calls in a stable, unconditional order so they retain the correct instances across rebuilds.
+
 ## Declarative State Handling
 
 The `when` extension maps every `ServiceStatus` to a widget:

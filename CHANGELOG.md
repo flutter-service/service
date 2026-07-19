@@ -43,3 +43,10 @@
 - Added automatic state identity based on type and invocation order, with optional keys for explicit sharing or separation.
 - Added an `onDispose` callback for cleaning up resources held by state values.
 - Added automatic disposal when a state no longer has dependent elements.
+
+## 2.3.0
+
+- Added BuildContext hooks for creating and automatically disposing common Flutter controllers and resources.
+- Added hooks for scroll, page, tab, text editing, animation, focus, ticker provider, and stream controllers.
+- Added `useTickerProvider()` and its `useVsync()` alias for animation hooks.
+- Added and exported `HookTickerProvider` for managing the lifecycle of hook-created tickers.
